@@ -13,6 +13,19 @@ public class Book {
         this.publicationYear = publicationYear;
     }
 
+    public String getTitle() {
+        return title;
+    }
+    public String getAuthor() {
+        return author;
+    }
+    public String getIsbn() {
+        return isbn;
+    }
+    public int getPublicationYear() {
+        return publicationYear;
+    }
+
     @Override
     public String toString() {
         return "Book{" +
