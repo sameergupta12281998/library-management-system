@@ -1,18 +1,27 @@
 package modal;
 
+import java.util.Objects;
+import java.util.UUID;
+
 public class Patron {
-    private final Long id;
+    private final String id;
     private  String name;
     private  String email;
     private  String phoneNumber;
 
-    public Patron(Long id, String name, String email, String phoneNumber) {
+    public Patron(String name, String email, String phone){
+        this(UUID.randomUUID().toString(), name, email, phone);
+    }
+
+    public Patron(String id, String name, String email, String phone){
+        if (id == null || id.isBlank()) throw new IllegalArgumentException("id required");
+        if (name == null || name.isBlank()) throw new IllegalArgumentException("name required");
         this.id = id;
         this.name = name;
         this.email = email;
-        this.phoneNumber = phoneNumber;
+        this.phoneNumber = phone;
     }
-    public Long getId() {
+    public String getId() {
         return id;
     }
     public String getName() {
@@ -33,15 +42,24 @@ public class Patron {
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
     }
+
     
+       @Override
+    public String toString(){
+        return "Patron{id='%s', name='%s'}".formatted(id, name);
+    }
+
     @Override
-    public String toString() {
-        return "Patron{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", email='" + email + '\'' +
-                ", phoneNumber='" + phoneNumber + '\'' +
-                '}';
+    public boolean equals(Object o){
+        if (this == o) return true;
+        if (!(o instanceof Patron)) return false;
+        Patron that = (Patron) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode(){
+        return Objects.hash(id);
     }
     
 }

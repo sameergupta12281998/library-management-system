@@ -1,19 +1,24 @@
 package serivces;
 
 import java.lang.foreign.Linker.Option;
+import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
 
 import modal.Book;
+import modal.Patron;
 import repository.BookRepository;
+import repository.PatronRepository;
 
 public class LibraryService {
 
     private static final Logger log = Logger.getLogger(LibraryService.class.getName());
 
     private final BookRepository bookRepository;
+    private final PatronRepository patronRepo;
 
-    public LibraryService(BookRepository bookRepository) {
+    public LibraryService(BookRepository bookRepository, PatronRepository patronRepo) {
+        this.patronRepo = patronRepo;
         this.bookRepository = bookRepository;
     }
 
@@ -38,5 +43,28 @@ public class LibraryService {
             log.warning("Attempted to remove non-existent book with ISBN: " + isbn);
         }
     }
-    
+
+    public List<Book> searchByTitle(String q){ return bookRepository.findByTitle(q); }
+    public List<Book> searchByAuthor(String q){ return bookRepository.findByAuthor(q); }
+    public Optional<Book> findByIsbn(String isbn){ return bookRepository.findByIsbn(isbn); }
+    public List<Book> findAllBooks(){ return bookRepository.findAll(); }
+
+
+
+
+    // Patron Management
+    public Patron addPatron(String name, String email, String phone){
+        Patron p = new Patron(name, email, phone);
+        patronRepo.save(p);
+        log.info(() -> "Added patron " + p);
+        return p;
+    }
+    public void updatePatron(Patron p){
+        patronRepo.update(p);
+        log.info(() -> "Updated patron " + p);
+    }
+    public Optional<modal.Patron> findPatronById(Long id){ return patronRepo.findById(id); }
+    public List<modal.Patron> findAllPatrons(){ return patronRepo.findAll(); }
+
+
 }

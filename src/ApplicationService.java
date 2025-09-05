@@ -1,10 +1,48 @@
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import modal.Book;
+import modal.Patron;
+import repository.BookRepository;
+import repository.PatronRepository;
+import repository.inmemory.InMemoryBookRepository;
+import repository.inmemory.inMemoryPartonRepository;
+import serivces.LibraryService;
+
 public class ApplicationService {
+    private static final Logger log = Logger.getLogger(ApplicationService.class.getName());
+
     public static void main(String[] args) {
-        //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-        // to see how IntelliJ IDEA suggests fixing it.
-        System.out.printf("Hello and welcome library-management-system!");
+
+        try {
+            Logger root = Logger.getLogger("");
+            if (root.getHandlers().length > 0) {
+                root.getHandlers()[0].setLevel(Level.ALL);
+            }
+            root.setLevel(Level.INFO);
+        } catch (Exception e) {
+            log.severe("Failed to set logger level: " + e.getMessage());
+        }
+        log.info("Application started");
+
+        BookRepository bookRepository = new InMemoryBookRepository();
+        PatronRepository patronRepository = new inMemoryPartonRepository();
+        LibraryService libraryService = new LibraryService(bookRepository,patronRepository);
+
+        Book book1 = new modal.Book("1234567890", "The Great Gatsby", "F. Scott Fitzgerald", 1925);
+        Book book2 = new modal.Book("0987654321", "To Kill a Mockingbird", "Harper Lee", 1960);
+        Book book3 = new modal.Book("1122334455", "1984", "George Orwell", 1949);
+
+        // Add a new book
+        libraryService.addOrUpdateBook(book1);
+        libraryService.addOrUpdateBook(book2);
+        libraryService.addOrUpdateBook(book3);
+
+
+
+        Patron alice = libraryService.addPatron("Alice", "alice@example.com", "111-111");
+        Patron bob = libraryService.addPatron("Bob", "bob@example.com", "222-222");
+
 
     }
 }
