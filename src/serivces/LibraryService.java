@@ -6,8 +6,10 @@ import java.util.Optional;
 import java.util.logging.Logger;
 
 import modal.Book;
+import modal.Branch;
 import modal.Patron;
 import repository.BookRepository;
+import repository.BranchRepository;
 import repository.PatronRepository;
 
 public class LibraryService {
@@ -16,8 +18,10 @@ public class LibraryService {
 
     private final BookRepository bookRepository;
     private final PatronRepository patronRepo;
+    private final BranchRepository branchRepo;
 
-    public LibraryService(BookRepository bookRepository, PatronRepository patronRepo) {
+    public LibraryService(BookRepository bookRepository, PatronRepository patronRepo, BranchRepository branchRepo) {
+        this.branchRepo = branchRepo;
         this.patronRepo = patronRepo;
         this.bookRepository = bookRepository;
     }
@@ -63,8 +67,15 @@ public class LibraryService {
         patronRepo.update(p);
         log.info(() -> "Updated patron " + p);
     }
-    public Optional<modal.Patron> findPatronById(Long id){ return patronRepo.findById(id); }
-    public List<modal.Patron> findAllPatrons(){ return patronRepo.findAll(); }
+    public Optional<Patron> findPatronById(Long id){ return patronRepo.findById(id); }
+    public List<Patron> findAllPatrons(){ return patronRepo.findAll(); }
+
+    public void addBranch(Branch b){
+        branchRepo.save(b);
+        log.info(() -> "Added branch " + b);
+    }
+
+    public List<Branch> findAllBranches(){ return branchRepo.findAll();};
 
 
 }

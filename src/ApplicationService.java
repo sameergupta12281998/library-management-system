@@ -4,9 +4,11 @@ import java.util.logging.Logger;
 import modal.Book;
 import modal.Patron;
 import repository.BookRepository;
+import repository.BranchRepository;
 import repository.PatronRepository;
 import repository.inmemory.InMemoryBookRepository;
-import repository.inmemory.inMemoryPartonRepository;
+import repository.inmemory.InMemoryBranchRepository;
+import repository.inmemory.InMemoryPartonRepository;
 import serivces.LibraryService;
 
 public class ApplicationService {
@@ -26,8 +28,9 @@ public class ApplicationService {
         log.info("Application started");
 
         BookRepository bookRepository = new InMemoryBookRepository();
-        PatronRepository patronRepository = new inMemoryPartonRepository();
-        LibraryService libraryService = new LibraryService(bookRepository,patronRepository);
+        PatronRepository patronRepository = new InMemoryPartonRepository();
+        BranchRepository branchRepository = new InMemoryBranchRepository();
+        LibraryService libraryService = new LibraryService(bookRepository,patronRepository,branchRepository);
 
         Book book1 = new modal.Book("1234567890", "The Great Gatsby", "F. Scott Fitzgerald", 1925);
         Book book2 = new modal.Book("0987654321", "To Kill a Mockingbird", "Harper Lee", 1960);

@@ -10,9 +10,9 @@ import modal.Book;
 import modal.Patron;
 import repository.PatronRepository;
 
-public class inMemoryPartonRepository  implements PatronRepository {
+public class InMemoryPartonRepository  implements PatronRepository {
 
-    private final Logger log = Logger.getLogger(inMemoryPartonRepository.class.getName());
+    private final Logger log = Logger.getLogger(InMemoryPartonRepository.class.getName());
      private final Map<String, Patron> patrons = new HashMap<>();
 
 
