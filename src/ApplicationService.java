@@ -9,6 +9,7 @@ import repository.PatronRepository;
 import repository.inmemory.InMemoryBookRepository;
 import repository.inmemory.InMemoryBranchRepository;
 import repository.inmemory.InMemoryPartonRepository;
+import serivces.Inventory;
 import serivces.LibraryService;
 
 public class ApplicationService {
@@ -30,7 +31,8 @@ public class ApplicationService {
         BookRepository bookRepository = new InMemoryBookRepository();
         PatronRepository patronRepository = new InMemoryPartonRepository();
         BranchRepository branchRepository = new InMemoryBranchRepository();
-        LibraryService libraryService = new LibraryService(bookRepository,patronRepository,branchRepository);
+        Inventory inventory = new Inventory();
+        LibraryService libraryService = new LibraryService(bookRepository,patronRepository,branchRepository,inventory);
 
         Book book1 = new modal.Book("1234567890", "The Great Gatsby", "F. Scott Fitzgerald", 1925);
         Book book2 = new modal.Book("0987654321", "To Kill a Mockingbird", "Harper Lee", 1960);

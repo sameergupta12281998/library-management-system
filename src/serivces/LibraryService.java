@@ -19,8 +19,11 @@ public class LibraryService {
     private final BookRepository bookRepository;
     private final PatronRepository patronRepo;
     private final BranchRepository branchRepo;
+    private final Inventory inventory;
 
-    public LibraryService(BookRepository bookRepository, PatronRepository patronRepo, BranchRepository branchRepo) {
+
+    public LibraryService(BookRepository bookRepository, PatronRepository patronRepo, BranchRepository branchRepo, Inventory inventory) {
+        this.inventory = inventory;
         this.branchRepo = branchRepo;
         this.patronRepo = patronRepo;
         this.bookRepository = bookRepository;
@@ -48,12 +51,13 @@ public class LibraryService {
         }
     }
 
+
+
+
     public List<Book> searchByTitle(String q){ return bookRepository.findByTitle(q); }
     public List<Book> searchByAuthor(String q){ return bookRepository.findByAuthor(q); }
     public Optional<Book> findByIsbn(String isbn){ return bookRepository.findByIsbn(isbn); }
     public List<Book> findAllBooks(){ return bookRepository.findAll(); }
-
-
 
 
     // Patron Management
@@ -70,12 +74,35 @@ public class LibraryService {
     public Optional<Patron> findPatronById(Long id){ return patronRepo.findById(id); }
     public List<Patron> findAllPatrons(){ return patronRepo.findAll(); }
 
+
+    // Branch Management
     public void addBranch(Branch b){
         branchRepo.save(b);
         log.info(() -> "Added branch " + b);
     }
 
+    public Optional<Branch> findBranchById(String id){ return branchRepo.findById(id); }
+
     public List<Branch> findAllBranches(){ return branchRepo.findAll();};
 
 
+    //Inventory Management
+
+
+    public void addCopies(String branchId, String isbn, int copies){
+        if (copies <= 0) throw new IllegalArgumentException("copies must be > 0");
+        inventory.addCopies(branchId, isbn, copies);
+        log.info(() -> "Added " + copies + " copies of isbn=" + isbn + " to branch=" + branchId);
+    }
+
+    public void removeCopies(String branchId, String isbn, int copies){
+        inventory.removeCopies(branchId, isbn, copies);
+        log.info(() -> "Removed " + copies + " copies of isbn=" + isbn + " from branch=" + branchId);
+    }
+
+    public int availableCopies(String branchId, String isbn){ return inventory.getAvailabeCount(branchId, isbn); }
+   
+    public int totalCopies(String branchId, String isbn){ return inventory.getTotalCount(branchId, isbn); }
+    Inventory getInventory(){ return inventory; }
 }
+
