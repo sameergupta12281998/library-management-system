@@ -66,5 +66,4 @@ public class Inventory {
     Map<String, Map<String, Integer>> snapshotAvailable(){ return availableCounts; }
     Map<String, Map<String, Integer>> snapshotTotal(){ return totalCounts; }
 
-    
 }
