@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Logger;
 
-import modal.Book;
 import modal.Patron;
 import repository.PatronRepository;
 
@@ -29,17 +28,18 @@ public class InMemoryPartonRepository  implements PatronRepository {
     }
 
     @Override
-    public Optional<Patron> findById(Long id) {
-        return Optional.ofNullable(patrons.get(id));
-    }
-
-    @Override
     public List<Patron> findAll() {
         return List.copyOf(patrons.values());
     }
 
+
     @Override
-    public void deleteById(Long id) {
+    public Optional<Patron> findById(String id) {
+        return Optional.ofNullable(patrons.get(id));
+    }
+
+    @Override
+    public void deleteById(String id) {
         patrons.remove(id);
         log.fine(() -> "Deleted patron with ID " + id);
     }

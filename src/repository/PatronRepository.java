@@ -9,8 +9,8 @@ public interface PatronRepository {
 
     void save(Patron patron);
     void update(Patron patron);
-    Optional<Patron> findById(Long id);
+    Optional<Patron> findById(String id);
     List<Patron> findAll();
-    void deleteById(Long id);
-    
+    void deleteById(String id);
+
 }

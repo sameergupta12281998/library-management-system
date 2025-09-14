@@ -13,9 +13,8 @@ public class Loan {
     private final LocalDate dueDate;
     private LocalDate returnDate;
 
-     public Loan(String patronID, String isbn, String branchID, LocalDate checkout, LocalDate dueDate,
-     LocalDate returnDate) {
-        this(UUID.randomUUID().toString(), patronID, isbn, branchID, checkout, dueDate, returnDate);
+     public Loan(String patronID, String isbn, String branchID, LocalDate checkout, LocalDate dueDate) {
+        this(UUID.randomUUID().toString(), patronID, isbn, branchID, checkout, dueDate, null);
     }
 
     public Loan(String id, String patronID, String isbn, String branchID, LocalDate checkout, LocalDate dueDate,

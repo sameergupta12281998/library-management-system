@@ -18,7 +18,9 @@ import repository.inmemory.InMemoryBranchRepository;
 import repository.inmemory.InMemoryPartonRepository;
 import serivces.BookSearchService;
 import serivces.Inventory;
+import serivces.LendingService;
 import serivces.LibraryService;
+import serivces.TransferService;
 
 public class ApplicationService {
     private static final Logger log = Logger.getLogger(ApplicationService.class.getName());
@@ -261,6 +263,95 @@ public class ApplicationService {
             } catch (NumberFormatException e) {
                 System.out.println("Please enter a valid integer.");
             }
+        }
+    }
+
+
+
+    private static void handleTransfer(Scanner sc, TransferService transfer, BranchRepository branchRepo, BookRepository bookRepo) {
+        Branch from = chooseBranch(sc, branchRepo);
+        if (from == null) return;
+        Branch to = chooseBranch(sc, branchRepo);
+        if (to == null) return;
+        String isbn = chooseBook(sc, bookRepo);
+        if (isbn == null) return;
+        int copies = readInt(sc, "Copies to transfer: ");
+        try {
+            transfer.transfer(from.getId(), to.getId(), isbn, copies);
+            System.out.println("Transfer successful.");
+        } catch (Exception e) {
+            System.out.println("Transfer failed: " + e.getMessage());
+        }
+    }
+
+    private static void handleCheckout(Scanner sc, LendingService lending, BookRepository bookRepo, PatronRepository patronRepo, BranchRepository branchRepo) {
+        String isbn = chooseBook(sc, bookRepo);
+        if (isbn == null) return;
+        Patron patron = choosePatron(sc, patronRepo);
+        if (patron == null) return;
+        Branch branch = chooseBranch(sc, branchRepo);
+        if (branch == null) return;
+        int days = readInt(sc, "Loan days (e.g., 14): ");
+        Optional<Loan> loan = lending.chechout(isbn, patron.getId(), branch.getId(), days);
+        if (loan.isPresent()) {
+            System.out.println("Checked out. Loan id: " + loan.get().getId());
+        } else {
+            System.out.println("Could not checkout (no available copies). You may reserve the book.");
+        }
+    }
+
+    private static void handleReturn(Scanner sc, LendingService lending, LoanRepository loanRepo, ReservationService reservations) {
+        listActiveLoans(loanRepo);
+        String loanId = readLine(sc, "Enter loan id to return: ");
+        boolean ok = lending.returnBook(loanId);
+        if (ok) {
+            // find loan to notify reservations
+            loanRepo.findById(loanId).ifPresent(l -> {
+                reservations.onCopyAvailable(l.getIsbn(), l.getBranchID());
+            });
+            System.out.println("Returned successfully.");
+        } else {
+            System.out.println("Return failed (loan not found or already returned).");
+        }
+    }
+
+    private static void handleReserve(Scanner sc, ReservationService reservations, BookRepository bookRepo, PatronRepository patronRepo, BranchRepository branchRepo) {
+        String isbn = chooseBook(sc, bookRepo);
+        if (isbn == null) return;
+        Patron patron = choosePatron(sc, patronRepo);
+        if (patron == null) return;
+        Branch branch = chooseBranch(sc, branchRepo);
+        if (branch == null) return;
+        Reservation res = reservations.reserve(isbn, patron.getId(), branch.getId());
+        System.out.println("Reserved: " + res.getId());
+    }
+
+    private static void handlePatronHistory(Scanner sc, LendingService lending, PatronRepository patronRepo) {
+        Patron patron = choosePatron(sc, patronRepo);
+        if (patron == null) return;
+        var history = lending.borrowingHistory(patron.getId());
+        System.out.println("History for " + patron.getName() + " (" + history.size() + "):");
+        history.forEach(h -> System.out.println(" - " + h));
+    }
+
+    private static void handleRecommendations(Scanner sc, RecommendationService recService, BookRepository bookRepo, LoanRepository loanRepo) {
+        String pid = readLine(sc, "Enter patron id for recommendations: ");
+        List<Book> recs = recService.recommend(pid, 5);
+        System.out.println("Recommendations (" + recs.size() + "):");
+        recs.forEach(b -> System.out.println(" - " + b));
+    }
+
+    private static void handleSwitchStrategy(Scanner sc, RecommendationService recService, LoanRepository loanRepo, BookRepository bookRepo) {
+        System.out.println("Choose strategy: 1) Popularity  2) Author-affinity");
+        int s = readInt(sc, "Strategy: ");
+        if (s == 1) {
+            recService.setStrategy(new PopularityBasedRecommendation(loanRepo, bookRepo));
+            System.out.println("Switched to Popularity-based.");
+        } else if (s == 2) {
+            recService.setStrategy(new AuthorAffinityRecommendation(loanRepo, bookRepo));
+            System.out.println("Switched to Author-affinity.");
+        } else {
+            System.out.println("Unknown strategy.");
         }
     }
 

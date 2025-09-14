@@ -71,7 +71,7 @@ public class LibraryService {
         patronRepo.update(p);
         log.info(() -> "Updated patron " + p);
     }
-    public Optional<Patron> findPatronById(Long id){ return patronRepo.findById(id); }
+    public Optional<Patron> findPatronById(String id){ return patronRepo.findById(id); }
     public List<Patron> findAllPatrons(){ return patronRepo.findAll(); }
 
 
