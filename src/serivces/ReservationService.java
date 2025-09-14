@@ -7,6 +7,7 @@ import java.util.logging.Logger;
 import modal.Patron;
 import modal.Reservation;
 import notification.Notifier;
+import notification.NotifierFactory;
 import repository.PatronRepository;
 import repository.ReservationRepository;
 
@@ -18,14 +19,17 @@ public class ReservationService {
     private final Inventory inventory;
     private final Notifier notifier;
 
-    public ReservationService(ReservationRepository reservationRepo, PatronRepository patronRepo, Inventory inventory, Notifier notifier) {
+     public ReservationService(ReservationRepository reservationRepo,
+                              PatronRepository patronRepo,
+                              Inventory inventory,
+                              NotifierFactory.Channel channel){
         this.reservationRepo = reservationRepo;
         this.patronRepo = patronRepo;
         this.inventory = inventory;
-        this.notifier = notifier;
+        this.notifier = NotifierFactory.create(channel);
     }
 
-      public Reservation reserve(String isbn, String patronId, String branchId){
+    public Reservation reserve(String isbn, String patronId, String branchId){
         Reservation r = new Reservation(isbn, patronId, branchId);
         reservationRepo.save(r);
         log.info(() -> "Created reservation " + r);

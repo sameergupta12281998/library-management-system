@@ -9,17 +9,26 @@ import modal.Book;
 import modal.Branch;
 import modal.Loan;
 import modal.Patron;
+import modal.Reservation;
+import notification.NotifierFactory;
+import recommendation.AuthorAffinityRecommendation;
+import recommendation.PopularityBasedRecommendation;
 import repository.BookRepository;
 import repository.BranchRepository;
 import repository.LoanRepository;
 import repository.PatronRepository;
+import repository.ReservationRepository;
 import repository.inmemory.InMemoryBookRepository;
 import repository.inmemory.InMemoryBranchRepository;
-import repository.inmemory.InMemoryPartonRepository;
+import repository.inmemory.InMemoryLoanRepository;
+import repository.inmemory.InMemoryPatronRepository;
+import repository.inmemory.InMemoryReservationRepository;
 import serivces.BookSearchService;
 import serivces.Inventory;
 import serivces.LendingService;
 import serivces.LibraryService;
+import serivces.RecommendationService;
+import serivces.ReservationService;
 import serivces.TransferService;
 
 public class ApplicationService {
@@ -38,36 +47,145 @@ public class ApplicationService {
         }
         log.info("Application started");
 
-        BookRepository bookRepository = new InMemoryBookRepository();
-        PatronRepository patronRepository = new InMemoryPartonRepository();
-        BranchRepository branchRepository = new InMemoryBranchRepository();
+     // Setup repositories
+        BookRepository bookRepo = new InMemoryBookRepository();
+        PatronRepository patronRepo = new InMemoryPatronRepository();
+        LoanRepository loanRepo = new InMemoryLoanRepository();
+        ReservationRepository reservationRepo = new InMemoryReservationRepository();
+        BranchRepository branchRepo = new InMemoryBranchRepository();
+
+        // Core services
         Inventory inventory = new Inventory();
+        LibraryService library = new LibraryService(bookRepo, patronRepo, branchRepo, inventory);
+        LendingService lending = new LendingService(loanRepo, inventory);
+        ReservationService reservations = new ReservationService(reservationRepo, patronRepo, inventory, NotifierFactory.Channel.CONSOLE);
+        TransferService transfer = new TransferService(inventory);
+        BookSearchService search = new BookSearchService(bookRepo);
 
-        LibraryService libraryService = new LibraryService(bookRepository,patronRepository,branchRepository,inventory);
+        // Recommendation service (Strategy)
+        RecommendationService recService = new RecommendationService(new PopularityBasedRecommendation(loanRepo, bookRepo));
 
-        Branch centralBranch = new Branch("1", "Central Library", "123 Main St");
-        Branch eastBranch = new Branch("2", "East Branch", "456 East St");
+        // Bootstrap (small sample data to get started)
+        Branch central = new Branch("Central Library", "Main St");
+        Branch east = new Branch("East Branch", "East Rd");
+        library.addBranch(central);
+        library.addBranch(east);
 
-        libraryService.addBranch(centralBranch);
-        libraryService.addBranch(eastBranch);
+        Book b1 = new Book("Clean Code", "Robert C. Martin", "9780132350884", 2008);
+        Book b2 = new Book("Effective Java", "Joshua Bloch", "9780134685991", 2018);
+        Book b3 = new Book("Design Patterns", "Erich Gamma", "9780201633610", 1994);
+        library.addOrUpdateBook(b1);
+        library.addOrUpdateBook(b2);
+        library.addOrUpdateBook(b3);
 
-        Book book1 = new modal.Book("1234567890", "The Great Gatsby", "F. Scott Fitzgerald", 1925);
-        Book book2 = new modal.Book("0987654321", "To Kill a Mockingbird", "Harper Lee", 1960);
-        Book book3 = new modal.Book("1122334455", "1984", "George Orwell", 1949);
+        library.addCopies(central.getId(), b1.getIsbn(), 2);
+        library.addCopies(central.getId(), b2.getIsbn(), 1);
+        library.addCopies(east.getId(), b2.getIsbn(), 2);
+        library.addCopies(east.getId(), b3.getIsbn(), 1);
 
-        // Add a new book
-        libraryService.addOrUpdateBook(book1);
-        libraryService.addOrUpdateBook(book2);
-        libraryService.addOrUpdateBook(book3);
-
-        libraryService.addCopies(centralBranch.getId(), book1.getIsbn() , 10);
-        libraryService.addCopies(eastBranch.getId(), book2.getIsbn() , 5);
+        Patron alice = library.addPatron("Alice", "alice@example.com", "111-111");
+        Patron bob = library.addPatron("Bob", "bob@example.com", "222-222");
+        //======================== take imput from console ========================
 
 
-        Patron alice = libraryService.addPatron("Alice", "alice@example.com", "111-111");
-        Patron bob = libraryService.addPatron("Bob", "bob@example.com", "222-222");
- 
+        try (Scanner sc = new Scanner(System.in)) {
+            boolean running = true;
+            while (running) {
+                printMenu();
+                int choice = readInt(sc, "Choose an option: ");
+                switch (choice) {
+                    case 0:
+                        running = false;
+                        break;
+                    case 1:
+                        handleAddBook(sc, library);
+                        break;
+                    case 2:
+                        handleUpdateBook(sc, library, bookRepo);
+                        break;
+                    case 3:
+                        handleRemoveBook(sc, library);
+                        break;
+                    case 4:
+                        handleSearchBooks(sc, search);
+                        break;
+                    case 5:
+                        listAllBooks(bookRepo);
+                        break;
+                    case 6:
+                        handleAddBranch(sc, library);
+                        break;
+                    case 7:
+                        listBranches(branchRepo);
+                        break;
+                    case 8:
+                        handleAddCopies(sc, library, bookRepo, branchRepo);
+                        break;
+                    case 9:
+                        handleTransfer(sc, transfer, branchRepo, bookRepo);
+                        break;
+                    case 10:
+                        handleAddPatron(sc, library);
+                        break;
+                    case 11:
+                        handleUpdatePatron(sc, patronRepo);
+                        break;
+                    case 12:
+                        listPatrons(patronRepo);
+                        break;
+                    case 13:
+                        handleCheckout(sc, lending, bookRepo, patronRepo, branchRepo);
+                        break;
+                    case 14:
+                        handleReturn(sc, lending, loanRepo, reservations);
+                        break;
+                    case 15:
+                        handleReserve(sc, reservations, bookRepo, patronRepo, branchRepo);
+                        break;
+                    case 16:
+                        listAllLoans(loanRepo);
+                        break;
+                    case 17:
+                        handlePatronHistory(sc, lending, patronRepo);
+                        break;
+                    case 18:
+                        handleRecommendations(sc, recService, bookRepo, loanRepo);
+                        break;
+                    case 19:
+                        handleSwitchStrategy(sc, recService, loanRepo, bookRepo);
+                        break;
+                    default:
+                        System.out.println("Unknown option. Try again.");
+                }
+                System.out.println();
+            }
+        }
 
+        log.info("Exiting interactive app.");
+    }
+
+    private static void printMenu() {
+        System.out.println("=== Library Menu ===");
+        System.out.println("0) Exit");
+        System.out.println("1) Add Book");
+        System.out.println("2) Update Book");
+        System.out.println("3) Remove Book");
+        System.out.println("4) Search Books");
+        System.out.println("5) List All Books");
+        System.out.println("6) Add Branch");
+        System.out.println("7) List Branches");
+        System.out.println("8) Add Copies to Branch");
+        System.out.println("9) Transfer Copies Between Branches");
+        System.out.println("10) Add Patron");
+        System.out.println("11) Update Patron");
+        System.out.println("12) List Patrons");
+        System.out.println("13) Checkout Book");
+        System.out.println("14) Return Book");
+        System.out.println("15) Reserve Book");
+        System.out.println("16) List All Loans");
+        System.out.println("17) Show Patron Borrowing History");
+        System.out.println("18) Show Recommendations for Patron");
+        System.out.println("19) Switch Recommendation Strategy");
     }
 
 
@@ -329,7 +447,7 @@ public class ApplicationService {
     private static void handlePatronHistory(Scanner sc, LendingService lending, PatronRepository patronRepo) {
         Patron patron = choosePatron(sc, patronRepo);
         if (patron == null) return;
-        var history = lending.borrowingHistory(patron.getId());
+        List<Loan>  history = lending.borrowingHistory(patron.getId());
         System.out.println("History for " + patron.getName() + " (" + history.size() + "):");
         history.forEach(h -> System.out.println(" - " + h));
     }

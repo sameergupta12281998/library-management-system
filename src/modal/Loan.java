@@ -56,5 +56,11 @@ public class Loan {
     public void markReturned(LocalDate returnDate) {
         this.returnDate = returnDate;
     }
+
+    @Override
+    public String toString() {
+        return "Loan{id='%s', patronID='%s', isbn='%s', branchID='%s', checkout=%s, dueDate=%s, returnDate=%s}"
+                .formatted(id, patronID, isbn, branchID, checkout, dueDate, returnDate);
+    }
     
 }

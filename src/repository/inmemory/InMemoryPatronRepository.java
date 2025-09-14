@@ -9,9 +9,9 @@ import java.util.logging.Logger;
 import modal.Patron;
 import repository.PatronRepository;
 
-public class InMemoryPartonRepository  implements PatronRepository {
+public class InMemoryPatronRepository implements PatronRepository {
 
-    private final Logger log = Logger.getLogger(InMemoryPartonRepository.class.getName());
+    private final Logger log = Logger.getLogger(InMemoryPatronRepository.class.getName());
      private final Map<String, Patron> patrons = new HashMap<>();
 
 
@@ -27,15 +27,10 @@ public class InMemoryPartonRepository  implements PatronRepository {
         log.fine(() -> "Updated patron " + patron);
     }
 
+
     @Override
     public List<Patron> findAll() {
         return List.copyOf(patrons.values());
-    }
-
-
-    @Override
-    public Optional<Patron> findById(String id) {
-        return Optional.ofNullable(patrons.get(id));
     }
 
     @Override
@@ -43,5 +38,11 @@ public class InMemoryPartonRepository  implements PatronRepository {
         patrons.remove(id);
         log.fine(() -> "Deleted patron with ID " + id);
     }
+
+    @Override
+    public Optional<Patron> findById(String id) {
+        return Optional.ofNullable(patrons.get(id));
+    }
+
     
 }
